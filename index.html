@@ -41,6 +41,9 @@ img{max-width:100%;display:block}
 #fstage img{position:absolute;left:50%;top:50%;mix-blend-mode:screen;will-change:transform,opacity;
   filter:drop-shadow(0 0 7px rgba(150,210,255,.35))}
 
+/* 水波荡漾 */
+#ripple{position:fixed;inset:0;z-index:-1;pointer-events:none}
+
 /* 蓝蝶氛围（黑底 screen 混合） */
 .bfly{position:absolute;right:-46px;top:50%;width:min(300px,58vw);z-index:-1;
   opacity:.85;pointer-events:none;
@@ -108,6 +111,7 @@ section{position:relative;padding:118px 0}
 <div class="bg"></div>
 <div class="mist" id="mist"></div>
 <div id="flock"><div id="fstage"></div></div>
+<canvas id="ripple"></canvas>
 
 <!-- ============ 开屏 ============ -->
 <header class="hero">
@@ -208,6 +212,49 @@ section{position:relative;padding:118px 0}
 </footer>
 
 <script>
+/* 水波荡漾：鼠标滑过 / 手机手指滑动（含滚动） */
+(function(){
+  const cv=document.getElementById('ripple');
+  const ctx=cv.getContext('2d');
+  let dpr=Math.min(2,window.devicePixelRatio||1);
+  function resize(){
+    dpr=Math.min(2,window.devicePixelRatio||1);
+    cv.width=Math.floor(innerWidth*dpr);cv.height=Math.floor(innerHeight*dpr);
+    cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';
+  }
+  resize();addEventListener('resize',resize);
+  const ripples=[];const DUR=1100,MAXR=120,RINGS=3,GAP=14;
+  let last=0,lx=0,ly=0;
+  function spawn(x,y,force){
+    const now=performance.now();
+    if(!force){ if(now-last<26) return; if(Math.hypot(x-lx,y-ly)<6 && now-last<70) return; }
+    last=now;lx=x;ly=y;ripples.push({x,y,t:now});
+    if(ripples.length>46) ripples.shift();
+  }
+  addEventListener('pointermove',e=>spawn(e.clientX,e.clientY),{passive:true});
+  addEventListener('touchmove',e=>{const t=e.touches[0];if(t)spawn(t.clientX,t.clientY);},{passive:true});
+  addEventListener('scroll',()=>{spawn(lx||innerWidth/2, ly>0?ly:innerHeight*0.62, true);},{passive:true});
+  (function loop(now){
+    requestAnimationFrame(loop);
+    ctx.clearRect(0,0,cv.width,cv.height);
+    ctx.globalCompositeOperation='lighter';
+    for(let i=ripples.length-1;i>=0;i--){
+      const r=ripples[i],p=(now-r.t)/DUR;
+      if(p>=1){ripples.splice(i,1);continue;}
+      const fade=Math.pow(1-p,1.6);
+      for(let k=0;k<RINGS;k++){
+        const rad=p*MAXR-k*GAP;if(rad<=0)continue;
+        const a=fade*(0.42-k*0.12);if(a<=0)continue;
+        ctx.beginPath();
+        ctx.arc(r.x*dpr,r.y*dpr,rad*dpr,0,Math.PI*2);
+        ctx.strokeStyle='rgba(150,210,255,'+a.toFixed(3)+')';
+        ctx.lineWidth=(1.4*(1-p)+0.4)*dpr;
+        ctx.stroke();
+      }
+    }
+    ctx.globalCompositeOperation='source-over';
+  })(performance.now());
+})();
 /* 冷光微粒 */
 (function(){
   const mist=document.getElementById('mist');
