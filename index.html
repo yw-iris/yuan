@@ -220,51 +220,53 @@ section{position:relative;padding:118px 0}
 /* 立体螺旋上升鸟群 */
 (function(){
   const stage=document.getElementById('fstage');
-  const SPR=['assets/fly1.png','assets/fly2.png','assets/fly3.png','assets/fly4.png','assets/fly5.png','assets/fly6.png','assets/fly7.png'];
-  const N=innerWidth<600?11:16;
+  const SPR=['assets/fly1.png','assets/fly2.png','assets/fly3.png','assets/fly4.png','assets/fly5.png','assets/fly6.png'];
+  const N=innerWidth<600?10:14;
   const birds=[];
   for(let i=0;i<N;i++){
     const el=document.createElement('img');
     el.src=SPR[i%SPR.length];
     const b={
       el,
-      w:44+Math.random()*72,                       // 基础宽 px
-      ph:Math.random()*Math.PI*2,                  // 相位
-      om:(.10+Math.random()*.16)*(Math.random()<.5?1:1), // 角速度
-      rx:130+Math.random()*300,                    // 螺旋半径 x
-      rz:0,                                        // 半径 z（与rx联动）
-      cx:(Math.random()*2-1)*innerWidth*.16,       // 中心横向偏移
-      ys:16+Math.random()*30,                      // 上升速度 px/s
-      yoff:Math.random()*2400,                     // 垂直相位
-      zbase:-60+Math.random()*120                  // 整体前后偏移
+      w:46+Math.random()*40,                       // 基础宽 px
+      u:i/N,                                       // 沿螺旋的相位 0..1（均匀分布）
+      R:130+Math.random()*70,                      // 螺旋半径（小方差→成柱）
+      tw:(Math.random()*2-1)*0.15,                 // 个体半径微扰
+      ph:Math.random()*6.28                        // 侧倾相位
     };
-    b.rz=b.rx*.85;
+    b.rz=b.R*0.9;
     el.style.width=b.w+'px';
     stage.appendChild(el);
     birds.push(b);
   }
-  const SPAN_RATIO=1.25;                            // 上升总行程（相对视口高）
+  const SPAN=()=>innerHeight*1.15;                 // 上升总行程
+  const VS=0.06, ROT=0.35, TWIST=2*Math.PI*1.4;   // 升速 / 整柱旋转 / 螺距
   let px=0,py=0,tx=0,ty=0,t=0;
-  addEventListener('pointermove',e=>{tx=(e.clientX/innerWidth-.5)*10;ty=(e.clientY/innerHeight-.5)*7;},{passive:true});
+  addEventListener('pointermove',e=>{tx=(e.clientX/innerWidth-.5)*8;ty=(e.clientY/innerHeight-.5)*5;},{passive:true});
   let last=performance.now();
   (function loop(now){
     const dt=Math.min(.05,(now-last)/1000);last=now;t+=dt;
     px+=(tx-px)*.04;py+=(ty-py)*.04;
-    stage.style.transform=`rotateY(${px}deg) rotateX(${-py}deg)`;
-    const vh=innerHeight,span=vh*SPAN_RATIO;
-    for(const b of birds){
-      const a=b.ph+t*b.om*2*Math.PI*.18;
-      const x=b.cx+b.rx*Math.sin(a);
-      const z=b.zbase+b.rz*Math.cos(a);
-      const p=((t*b.ys+b.yoff)%span)/span;         // 0 底 → 1 顶
-      const y=vh*.55-p*span;
-      const depth=(z+b.rz)/(2*b.rz);               // 0 后 → 1 前
-      const edge=Math.min(1,p*7,(1-p)*7);          // 两端淡入淡出
-      const o=(.30+.62*depth)*edge;
-      const blur=(1-depth)*2.2;
-      b.el.style.opacity=o.toFixed(3);
-      b.el.style.filter=`drop-shadow(0 0 7px rgba(150,210,255,.35)) blur(${blur.toFixed(1)}px)`;
-      b.el.style.transform=`translate(-50%,-50%) translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,${z.toFixed(1)}px) rotateY(${(-a*57.29).toFixed(1)}deg) rotateZ(${(Math.sin(t*.8+b.ph)*7).toFixed(1)}deg)`;
+    stage.style.transform=`rotateY(${px.toFixed(2)}deg) rotateX(${(-py).toFixed(2)}deg)`;
+    const vh=innerHeight, span=SPAN();
+    for(let k=0;k<birds.length;k++){
+      const b=birds[k];
+      const v=((t*VS+b.u)%1+1)%1;                   // 0 底 → 1 顶（循环上升）
+      const th=TWIST*v + t*ROT + b.u*0.6;           // 绕轴角度
+      const R=b.R*(1+b.tw);
+      const x=R*Math.sin(th);
+      const z=R*Math.cos(th);
+      const y=vh*0.62 - v*span;
+      const depth=(z+b.rz)/(2*b.rz);                // 0 后 → 1 前
+      const edge=Math.min(1, v*9, (1-v)*9);         // 两端淡入淡出
+      const o=((0.42+0.55*depth)*edge).toFixed(3);
+      const blur=((1-depth)*2).toFixed(1);
+      // 仅做轻微侧倾，绝不整圈转（避免 bird 变竖线/消失）
+      const yaw=(Math.sin(t*0.5+b.ph)*12 - 6).toFixed(1);
+      const bank=(Math.sin(t*0.7+b.ph)*6).toFixed(1);
+      b.el.style.opacity=o;
+      b.el.style.filter=`drop-shadow(0 0 7px rgba(150,210,255,.35)) blur(${blur}px)`;
+      b.el.style.transform=`translate(-50%,-50%) translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,${z.toFixed(1)}px) rotateY(${yaw}deg) rotateZ(${bank}deg)`;
     }
     requestAnimationFrame(loop);
   })(last);
