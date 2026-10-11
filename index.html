@@ -24,6 +24,11 @@ img{max-width:100%;display:block}
 .bg{position:fixed;inset:0;z-index:-2;
   background:radial-gradient(120% 80% at 50% -10%,#163a5f 0%,#0a1a2e 45%,#06101c 100%),
              linear-gradient(180deg,#06101c,#091627)}
+/* 海鸥群底图：压暗融入深蓝 */
+.bg::before{content:"";position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(6,16,28,.45),rgba(6,16,28,.62) 55%,rgba(6,16,28,.82)),
+             url(assets/bg_birds.jpg) center/cover no-repeat;
+  opacity:.8}
 .bg::after{content:"";position:absolute;left:50%;bottom:-30vh;width:160vw;height:70vh;transform:translateX(-50%);
   background:radial-gradient(60% 100% at 50% 0%,rgba(124,192,221,.15),transparent 70%);filter:blur(8px)}
 .mist{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.5}
@@ -35,6 +40,12 @@ img{max-width:100%;display:block}
 #fstage{position:absolute;inset:0;transform-style:preserve-3d;will-change:transform}
 #fstage img{position:absolute;left:50%;top:50%;mix-blend-mode:screen;will-change:transform,opacity;
   filter:drop-shadow(0 0 7px rgba(150,210,255,.35))}
+
+/* 蓝蝶氛围（黑底 screen 混合） */
+.bfly{position:absolute;right:-46px;top:50%;width:min(300px,58vw);z-index:-1;
+  mix-blend-mode:screen;opacity:.8;pointer-events:none;
+  animation:bfloat 7s ease-in-out infinite alternate}
+@keyframes bfloat{from{transform:translateY(-53%) rotate(-2deg)}to{transform:translateY(-46%) rotate(2deg)}}
 
 .wrap{max-width:860px;margin:0 auto;padding:0 26px}
 section{position:relative;padding:118px 0}
@@ -85,7 +96,7 @@ section{position:relative;padding:118px 0}
 .ends .y{font-size:42px;font-weight:200;color:#eaf6fc;letter-spacing:.15em;text-shadow:0 0 26px rgba(124,192,221,.4)}
 .ends .t{color:var(--muted);font-family:var(--latin);font-style:italic;letter-spacing:.4em;margin-top:14px;font-size:14px}
 .ends .small{color:rgba(134,164,189,.55);font-size:11px;letter-spacing:.3em;margin-top:28px}
-@media(max-width:600px){section{padding:92px 0}}
+@media(max-width:600px){section{padding:92px 0}.bfly{width:46vw;right:-26px;opacity:.55}}
 </style>
 </head>
 <body>
@@ -156,6 +167,7 @@ section{position:relative;padding:118px 0}
   <div class="poem">是情绪
     <span class="cn">也是泪痕</span>
   </div>
+  <img class="bfly" src="assets/bg_butterfly.jpg" alt="">
 </section>
 
 <!-- ============ 须知 ============ -->
