@@ -29,12 +29,6 @@ img{max-width:100%;display:block}
 .mist{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.5}
 .mist i{position:absolute;width:3px;height:3px;border-radius:50%;background:var(--ice);
   box-shadow:0 0 8px 2px rgba(191,228,242,.6)}
-.birds{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
-.bird{position:absolute;opacity:.5;will-change:transform}
-.bird svg{display:block;width:100%;height:100%;stroke:var(--ice);stroke-width:2;fill:none;stroke-linecap:round;
-  filter:drop-shadow(0 0 4px rgba(191,228,242,.5))}
-@keyframes fly{0%{transform:translate(-12vw,0) scale(var(--s,.6))}100%{transform:translate(112vw,-6vh) scale(var(--s,.6))}}
-@keyframes flap{0%,100%{transform:scaleY(1)}50%{transform:scaleY(.6)}}
 
 .wrap{max-width:860px;margin:0 auto;padding:0 26px}
 section{position:relative;padding:118px 0}
@@ -91,7 +85,6 @@ section{position:relative;padding:118px 0}
 <body>
 <div class="bg"></div>
 <div class="mist" id="mist"></div>
-<div class="birds" id="birds"></div>
 
 <!-- ============ 开屏 ============ -->
 <header class="hero">
@@ -205,37 +198,11 @@ section{position:relative;padding:118px 0}
   st.textContent='@keyframes float{from{transform:translateY(0)}to{transform:translateY(-26px)}}';
   document.head.appendChild(st);
 })();
-/* 飞鸟 */
-(function(){
-  const host=document.getElementById('birds');
-  for(let i=0;i<7;i++){
-    const b=document.createElement('div');b.className='bird';
-    const depth=0.4+Math.random()*0.9;
-    const w=22+depth*46;
-    b.style.width=w+'px';b.style.height=(w*0.5)+'px';
-    b.style.top=(8+Math.random()*70)+'vh';
-    b.style.opacity=(0.25+depth*0.5).toFixed(2);
-    b.style.setProperty('--s',(0.5+depth*0.8).toFixed(2));
-    const dur=(16+Math.random()*20)/depth;
-    b.style.animation=`fly ${dur}s ${Math.random()*12}s linear infinite`;
-    b.innerHTML='<svg viewBox="0 0 60 30"><path class="wing" d="M2 22 Q18 4 30 18 Q42 4 58 22"/></svg>';
-    const w2=b.querySelector('.wing');
-    w2.style.transformOrigin='30px 18px';
-    w2.style.animation=`flap ${1.1+Math.random()*0.8}s ease-in-out infinite`;
-    host.appendChild(b);
-  }
-})();
 /* 滚动显现 */
 const io=new IntersectionObserver(es=>{
   es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});
 },{threshold:.15});
 document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
-/* 鼠标视差 */
-let tx=0,ty=0,cx=0,cy=0;
-addEventListener('pointermove',e=>{tx=(e.clientX/innerWidth-0.5)*14;ty=(e.clientY/innerHeight-0.5)*10;},{passive:true});
-(function loop(){cx+=(tx-cx)*.05;cy+=(ty-cy)*.05;
-  document.getElementById('birds').style.transform=`translate(${cx}px,${cy}px)`;
-  requestAnimationFrame(loop);})();
 </script>
 </body>
 </html>
